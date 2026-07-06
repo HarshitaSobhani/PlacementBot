@@ -1,5 +1,7 @@
 # PlacementLens
 
+[![CI](https://github.com/HarshitaSobhani/PlacementBot/actions/workflows/ci.yml/badge.svg)](https://github.com/HarshitaSobhani/PlacementBot/actions/workflows/ci.yml)
+
 **30-second pitch:** An end-to-end ML product that predicts whether a student will
 be placed by a campus recruiter, with per-prediction SHAP explanations ("why did the
 model say this?"), served behind a FastAPI endpoint and a zero-build HTML/JS
