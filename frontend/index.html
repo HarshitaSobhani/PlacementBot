@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>PlacementLens</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; color: #1a1a1a; }
+  h1 { margin-bottom: 4px; }
+  p.sub { color: #666; margin-top: 0; }
+  form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+  label { display: flex; flex-direction: column; font-size: 13px; font-weight: 600; color: #333; }
+  input, select { margin-top: 4px; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; }
+  button { grid-column: 1 / -1; padding: 12px; font-size: 15px; font-weight: 600; background: #1a1a1a; color: white; border: none; border-radius: 6px; cursor: pointer; margin-top: 8px; }
+  button:hover { background: #333; }
+  #result { margin-top: 24px; padding: 16px; border-radius: 8px; display: none; }
+  #result.placed { background: #e7f7ee; border: 1px solid #34a853; }
+  #result.not-placed { background: #fdecea; border: 1px solid #d93025; }
+  #result h2 { margin-top: 0; }
+  #result ul { padding-left: 18px; }
+</style>
+</head>
+<body>
+<h1>PlacementLens</h1>
+<p class="sub">Predicts whether a student will be placed, with a plain-language explanation of why.</p>
+
+<form id="form">
+  <label>Age
+    <input name="Age" type="number" step="1" min="17" max="30" value="22" required />
+  </label>
+  <label>Gender
+    <select name="Gender"><option>Male</option><option>Female</option></select>
+  </label>
+
+  <label>Degree
+    <select name="Degree"><option>B.Tech</option><option>BCA</option><option>MCA</option><option>B.Sc</option></select>
+  </label>
+  <label>Branch
+    <select name="Branch"><option>CSE</option><option>IT</option><option>ECE</option><option>ME</option><option>Civil</option></select>
+  </label>
+
+  <label>CGPA (0-10)
+    <input name="CGPA" type="number" step="0.01" min="0" max="10" value="7.5" required />
+  </label>
+  <label>Aptitude test score (0-100)
+    <input name="Aptitude_Test_Score" type="number" step="0.1" min="0" max="100" value="70" required />
+  </label>
+
+  <label>Internships
+    <input name="Internships" type="number" step="1" min="0" max="10" value="1" required />
+  </label>
+  <label>Projects
+    <input name="Projects" type="number" step="1" min="0" max="20" value="4" required />
+  </label>
+
+  <label>Coding skills (0-10)
+    <input name="Coding_Skills" type="number" step="1" min="0" max="10" value="6" required />
+  </label>
+  <label>Communication skills (0-10)
+    <input name="Communication_Skills" type="number" step="1" min="0" max="10" value="6" required />
+  </label>
+
+  <label>Soft skills rating (0-10)
+    <input name="Soft_Skills_Rating" type="number" step="1" min="0" max="10" value="6" required />
+  </label>
+  <label>Certifications
+    <input name="Certifications" type="number" step="1" min="0" max="10" value="1" required />
+  </label>
+
+  <label>Backlogs
+    <input name="Backlogs" type="number" step="1" min="0" max="10" value="0" required />
+  </label>
+
+  <button type="submit">Predict placement</button>
+</form>
+
+<div id="result"></div>
+
+<script src="script.js"></script>
+</body>
+</html>

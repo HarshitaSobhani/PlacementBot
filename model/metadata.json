@@ -1,0 +1,44 @@
+{
+  "best_model": "Random Forest",
+  "numeric_features": [
+    "Age",
+    "CGPA",
+    "Internships",
+    "Projects",
+    "Coding_Skills",
+    "Communication_Skills",
+    "Aptitude_Test_Score",
+    "Soft_Skills_Rating",
+    "Certifications",
+    "Backlogs",
+    "skill_avg"
+  ],
+  "categorical_features": [
+    "Gender",
+    "Degree",
+    "Branch"
+  ],
+  "feature_names_transformed": [
+    "num__Age",
+    "num__CGPA",
+    "num__Internships",
+    "num__Projects",
+    "num__Coding_Skills",
+    "num__Communication_Skills",
+    "num__Aptitude_Test_Score",
+    "num__Soft_Skills_Rating",
+    "num__Certifications",
+    "num__Backlogs",
+    "num__skill_avg",
+    "cat__Gender_Male",
+    "cat__Degree_B.Sc",
+    "cat__Degree_B.Tech",
+    "cat__Degree_BCA",
+    "cat__Degree_MCA",
+    "cat__Branch_CSE",
+    "cat__Branch_Civil",
+    "cat__Branch_ECE",
+    "cat__Branch_IT",
+    "cat__Branch_ME"
+  ]
+}
