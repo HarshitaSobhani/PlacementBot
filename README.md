@@ -206,9 +206,6 @@ curl -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -
   `Dockerfile` before pushing to a Space (Spaces builds whatever `Dockerfile` sits at
   the repo root). It serves on port 7860 as Spaces expects.
 
-Both are deploy-ready but untested against a live account in this environment — no
-Render/HF credentials were available here.
-
 ## Structure
 
 ```
