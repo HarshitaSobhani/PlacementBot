@@ -183,8 +183,10 @@ uvicorn api.main:app --reload --port 8000
 # API docs at http://127.0.0.1:8000/docs
 
 # Tests (tests/test_api.py hits /health and /predict via FastAPI's TestClient;
-# tests/test_explain_utils.py covers the SHAP-feature-name parsing logic)
-pytest
+# tests/test_explain_utils.py covers the SHAP-feature-name parsing logic).
+# Use `python -m pytest`, not bare `pytest` -- the latter doesn't add the repo
+# root to sys.path, so `from api...` imports fail with ModuleNotFoundError.
+python -m pytest
 ```
 
 Example request:
