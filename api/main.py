@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from api.explain_utils import describe_feature
+from api.explain_utils import describe_feature, split_transformed_name
 from api.schema import PredictionResponse, PlacementInput, TopFeature
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -73,12 +73,13 @@ def predict(payload: PlacementInput):
         base_prob = 1 / (1 + np.exp(-expected_value))
         bumped_prob = 1 / (1 + np.exp(-(expected_value + contrib)))
         impact_pct = round((bumped_prob - base_prob) * 100, 2)
+        clean_name, _category = split_transformed_name(FEATURE_NAMES[i], NUMERIC, CATEGORICAL)
         top_features.append(
             TopFeature(
-                feature=FEATURE_NAMES[i],
+                feature=clean_name,
                 direction=direction,
                 approx_probability_impact_pct=impact_pct,
-                explanation=describe_feature(FEATURE_NAMES[i], direction, raw_row),
+                explanation=describe_feature(FEATURE_NAMES[i], direction, raw_row, NUMERIC, CATEGORICAL),
             )
         )
 

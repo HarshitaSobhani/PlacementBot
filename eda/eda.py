@@ -2,6 +2,9 @@
 Exploratory data analysis for PlacementLens (real Kaggle "Student Placement
 Dataset"). Produces 5 plots into eda/figures/. Run: python eda/eda.py
 """
+import os
+from pathlib import Path
+
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -10,8 +13,11 @@ import seaborn as sns
 
 sns.set_theme(style="whitegrid")
 
-df = pd.read_csv("data/placement_data.csv")
-FIG_DIR = "eda/figures"
+ROOT = Path(__file__).resolve().parent.parent
+FIG_DIR = ROOT / "eda" / "figures"
+os.makedirs(FIG_DIR, exist_ok=True)
+
+df = pd.read_csv(ROOT / "data" / "placement_data.csv")
 NUMERIC = [
     "Age", "CGPA", "Internships", "Projects", "Coding_Skills",
     "Communication_Skills", "Aptitude_Test_Score", "Soft_Skills_Rating",

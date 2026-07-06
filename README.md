@@ -116,6 +116,15 @@ realistic result to trust.
 - **Single-container deploy**: the FastAPI app also mounts `frontend/` as static
   files, so one process/port serves both the API and the demo UI — simpler for a
   free-tier Render service or a single HF Space.
+- **Input bounds match the real training data's range** (see `api/schema.py`),
+  not arbitrary caps (e.g. `Internships` is capped at 5, since training data
+  only had 0–3) — the model has never seen inputs outside this range, so
+  rejecting them at the API boundary is more honest than silently
+  extrapolating and returning a confident-looking prediction anyway.
+- **`requirements.txt` is pinned to exact versions** (`pip freeze`), not loose
+  `>=` bounds, because a committed `model/best_model.pkl` is a scikit-learn/
+  xgboost pickle — those aren't guaranteed compatible across library (or even
+  Python) versions, so "whatever installs later" can silently break loading it.
 
 ## Why F1 over accuracy
 
@@ -142,6 +151,11 @@ static global ranking.
 
 ## How to run
 
+Requires **Python 3.13** — `requirements.txt` is pinned to exact versions (via
+`pip freeze`) that match the packages `model/best_model.pkl` was trained and
+pickled with, since scikit-learn/xgboost pickles aren't guaranteed compatible
+across library (or Python) versions.
+
 ```bash
 python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
@@ -160,8 +174,12 @@ python model/explain.py
 
 # 5. Serve the API (also serves the frontend at the same URL)
 uvicorn api.main:app --reload --port 8000
-# open http://127.0.0.1:8000  (leave "API base URL" blank in the form)
+# open http://127.0.0.1:8000
 # API docs at http://127.0.0.1:8000/docs
+
+# Tests (tests/test_api.py hits /health and /predict via FastAPI's TestClient;
+# tests/test_explain_utils.py covers the SHAP-feature-name parsing logic)
+pytest
 ```
 
 Example request:

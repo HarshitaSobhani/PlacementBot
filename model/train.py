@@ -7,6 +7,8 @@ preprocessor, to model/. Also writes results/model_comparison.md.
 Run: python model/train.py
 """
 import json
+import os
+from pathlib import Path
 
 import joblib
 import numpy as np
@@ -34,7 +36,11 @@ NUMERIC = [
 ]
 CATEGORICAL = ["Gender", "Degree", "Branch"]
 
-df = pd.read_csv("data/placement_data.csv")
+ROOT = Path(__file__).resolve().parent.parent
+os.makedirs(ROOT / "results", exist_ok=True)
+os.makedirs(ROOT / "model", exist_ok=True)
+
+df = pd.read_csv(ROOT / "data" / "placement_data.csv")
 
 # Derived feature: overall skill strength across the three 0-10 rated skill
 # dimensions (coding, communication, soft skills).
@@ -87,20 +93,20 @@ for name, clf in models.items():
         }
     )
 
-results_df = pd.DataFrame(rows).sort_values("F1", ascending=False).reset_index(drop=True)
+results_df = pd.DataFrame(rows).sort_values("F1", ascending=False, kind="stable").reset_index(drop=True)
 best_name = results_df.iloc[0]["Model"]
 best_model = fitted[best_name]
 
 print(results_df.to_string(index=False))
 
-with open("results/model_comparison.md", "w") as f:
+with open(ROOT / "results" / "model_comparison.md", "w") as f:
     f.write("# Model Comparison\n\n")
     f.write(results_df.round(4).to_markdown(index=False))
     f.write(f"\n\n**Selected model (highest F1): {best_name}**\n")
 
-joblib.dump(best_model, "model/best_model.pkl")
-joblib.dump(preprocessor, "model/preprocessor.pkl")
-with open("model/metadata.json", "w") as f:
+joblib.dump(best_model, ROOT / "model" / "best_model.pkl")
+joblib.dump(preprocessor, ROOT / "model" / "preprocessor.pkl")
+with open(ROOT / "model" / "metadata.json", "w") as f:
     json.dump(
         {
             "best_model": best_name,
@@ -118,9 +124,9 @@ with open("model/metadata.json", "w") as f:
 # background collapses every contribution to ~0).
 Xt_test_dense = Xt_test if not hasattr(Xt_test, "toarray") else Xt_test.toarray()
 Xt_train_dense = Xt_train if not hasattr(Xt_train, "toarray") else Xt_train.toarray()
-np.save("model/X_test_transformed.npy", Xt_test_dense)
-np.save("model/background_transformed.npy", Xt_train_dense[:100])
-X_test.reset_index(drop=True).to_csv("model/X_test_raw.csv", index=False)
-y_test.reset_index(drop=True).to_csv("model/y_test.csv", index=False)
+np.save(ROOT / "model" / "X_test_transformed.npy", Xt_test_dense)
+np.save(ROOT / "model" / "background_transformed.npy", Xt_train_dense[:100])
+X_test.reset_index(drop=True).to_csv(ROOT / "model" / "X_test_raw.csv", index=False)
+y_test.reset_index(drop=True).to_csv(ROOT / "model" / "y_test.csv", index=False)
 
 print(f"\nBest model: {best_name} -> saved to model/best_model.pkl")

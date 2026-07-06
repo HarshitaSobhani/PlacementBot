@@ -3,6 +3,8 @@ SHAP explainability: global summary plot + one individual waterfall plot.
 Run after model/train.py. Run: python model/explain.py
 """
 import json
+import os
+from pathlib import Path
 
 import joblib
 import matplotlib
@@ -13,11 +15,14 @@ import numpy as np
 import pandas as pd
 import shap
 
-model = joblib.load("model/best_model.pkl")
-with open("model/metadata.json") as f:
+ROOT = Path(__file__).resolve().parent.parent
+os.makedirs(ROOT / "results" / "shap", exist_ok=True)
+
+model = joblib.load(ROOT / "model" / "best_model.pkl")
+with open(ROOT / "model" / "metadata.json") as f:
     meta = json.load(f)
 
-X_test = np.load("model/X_test_transformed.npy")
+X_test = np.load(ROOT / "model" / "X_test_transformed.npy")
 # A few hundred rows is plenty to visualize global SHAP behavior and keeps
 # TreeExplainer fast on a 10k-row test split.
 rng = np.random.default_rng(42)
@@ -39,7 +44,7 @@ X_test_df = pd.DataFrame(X_test, columns=feature_names)
 plt.figure()
 shap.summary_plot(shap_values, X_test_df, show=False)
 plt.tight_layout()
-plt.savefig("results/shap/summary_plot.png", dpi=120, bbox_inches="tight")
+plt.savefig(ROOT / "results" / "shap" / "summary_plot.png", dpi=120, bbox_inches="tight")
 plt.close()
 
 # Individual explanation for the first test row.
@@ -57,7 +62,7 @@ explanation = shap.Explanation(
 plt.figure()
 shap.plots.waterfall(explanation, show=False)
 plt.tight_layout()
-plt.savefig("results/shap/waterfall_example_0.png", dpi=120, bbox_inches="tight")
+plt.savefig(ROOT / "results" / "shap" / "waterfall_example_0.png", dpi=120, bbox_inches="tight")
 plt.close()
 
 print("Saved results/shap/summary_plot.png and waterfall_example_0.png")
