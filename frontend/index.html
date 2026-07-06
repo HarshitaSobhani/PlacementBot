@@ -25,8 +25,8 @@
 <p class="sub">Predicts whether a student will be placed, with a plain-language explanation of why.</p>
 
 <form id="form">
-  <label>Age
-    <input name="Age" type="number" step="1" min="17" max="30" value="22" required />
+  <label>Age (17-26)
+    <input name="Age" type="number" step="1" min="17" max="26" value="22" required />
   </label>
   <label>Gender
     <select name="Gender"><option>Male</option><option>Female</option></select>
@@ -39,36 +39,36 @@
     <select name="Branch"><option>CSE</option><option>IT</option><option>ECE</option><option>ME</option><option>Civil</option></select>
   </label>
 
-  <label>CGPA (0-10)
-    <input name="CGPA" type="number" step="0.01" min="0" max="10" value="7.5" required />
+  <label>CGPA (4-10)
+    <input name="CGPA" type="number" step="0.01" min="4" max="10" value="7.5" required />
   </label>
-  <label>Aptitude test score (0-100)
-    <input name="Aptitude_Test_Score" type="number" step="0.1" min="0" max="100" value="70" required />
-  </label>
-
-  <label>Internships
-    <input name="Internships" type="number" step="1" min="0" max="10" value="1" required />
-  </label>
-  <label>Projects
-    <input name="Projects" type="number" step="1" min="0" max="20" value="4" required />
+  <label>Aptitude test score (30-100)
+    <input name="Aptitude_Test_Score" type="number" step="0.1" min="30" max="100" value="70" required />
   </label>
 
-  <label>Coding skills (0-10)
-    <input name="Coding_Skills" type="number" step="1" min="0" max="10" value="6" required />
+  <label>Internships (0-5)
+    <input name="Internships" type="number" step="1" min="0" max="5" value="1" required />
   </label>
-  <label>Communication skills (0-10)
-    <input name="Communication_Skills" type="number" step="1" min="0" max="10" value="6" required />
-  </label>
-
-  <label>Soft skills rating (0-10)
-    <input name="Soft_Skills_Rating" type="number" step="1" min="0" max="10" value="6" required />
-  </label>
-  <label>Certifications
-    <input name="Certifications" type="number" step="1" min="0" max="10" value="1" required />
+  <label>Projects (0-8)
+    <input name="Projects" type="number" step="1" min="0" max="8" value="4" required />
   </label>
 
-  <label>Backlogs
-    <input name="Backlogs" type="number" step="1" min="0" max="10" value="0" required />
+  <label>Coding skills (1-10)
+    <input name="Coding_Skills" type="number" step="1" min="1" max="10" value="6" required />
+  </label>
+  <label>Communication skills (1-10)
+    <input name="Communication_Skills" type="number" step="1" min="1" max="10" value="6" required />
+  </label>
+
+  <label>Soft skills rating (1-10)
+    <input name="Soft_Skills_Rating" type="number" step="1" min="1" max="10" value="6" required />
+  </label>
+  <label>Certifications (0-5)
+    <input name="Certifications" type="number" step="1" min="0" max="5" value="1" required />
+  </label>
+
+  <label>Backlogs (0-5)
+    <input name="Backlogs" type="number" step="1" min="0" max="5" value="0" required />
   </label>
 
   <button type="submit">Predict placement</button>

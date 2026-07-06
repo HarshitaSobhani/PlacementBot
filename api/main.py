@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 
 from api.explain_utils import describe_feature, split_transformed_name
 from api.schema import PredictionResponse, PlacementInput, TopFeature
+from features import compute_skill_avg
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -35,9 +36,9 @@ else:
 
 
 def _to_frame(payload: PlacementInput) -> pd.DataFrame:
-    row = payload.model_dump()
-    row["skill_avg"] = (row["Coding_Skills"] + row["Communication_Skills"] + row["Soft_Skills_Rating"]) / 3
-    return pd.DataFrame([row])[NUMERIC + CATEGORICAL]
+    df = pd.DataFrame([payload.model_dump()])
+    df["skill_avg"] = compute_skill_avg(df)
+    return df[NUMERIC + CATEGORICAL]
 
 
 @app.get("/health")
@@ -65,15 +66,24 @@ def predict(payload: PlacementInput):
     if isinstance(expected_value, (list, np.ndarray)):
         expected_value = expected_value[1] if np.ndim(expected_value) else float(expected_value)
 
-    order = np.argsort(-np.abs(contributions))[:3]
+    # Rank all features by |contribution|, but keep only the first one seen
+    # per clean column name -- a multi-category column like Branch or Degree
+    # produces several one-hot dummies, and without this guard two dummies
+    # for the same underlying column could both land in the "top 3".
+    ranked = np.argsort(-np.abs(contributions))
     top_features = []
-    for i in order:
+    seen_columns = set()
+    for i in ranked:
+        clean_name, _category = split_transformed_name(FEATURE_NAMES[i], NUMERIC, CATEGORICAL)
+        if clean_name in seen_columns:
+            continue
+        seen_columns.add(clean_name)
+
         contrib = float(contributions[i])
         direction = "increased" if contrib > 0 else "decreased"
         base_prob = 1 / (1 + np.exp(-expected_value))
         bumped_prob = 1 / (1 + np.exp(-(expected_value + contrib)))
         impact_pct = round((bumped_prob - base_prob) * 100, 2)
-        clean_name, _category = split_transformed_name(FEATURE_NAMES[i], NUMERIC, CATEGORICAL)
         top_features.append(
             TopFeature(
                 feature=clean_name,
@@ -82,6 +92,8 @@ def predict(payload: PlacementInput):
                 explanation=describe_feature(FEATURE_NAMES[i], direction, raw_row, NUMERIC, CATEGORICAL),
             )
         )
+        if len(top_features) == 3:
+            break
 
     return PredictionResponse(
         prediction=label,

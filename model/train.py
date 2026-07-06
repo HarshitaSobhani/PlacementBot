@@ -8,6 +8,7 @@ Run: python model/train.py
 """
 import json
 import os
+import sys
 from pathlib import Path
 
 import joblib
@@ -37,14 +38,18 @@ NUMERIC = [
 CATEGORICAL = ["Gender", "Degree", "Branch"]
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from features import compute_skill_avg  # noqa: E402 (needs ROOT on sys.path first)
+
 os.makedirs(ROOT / "results", exist_ok=True)
 os.makedirs(ROOT / "model", exist_ok=True)
 
 df = pd.read_csv(ROOT / "data" / "placement_data.csv")
 
 # Derived feature: overall skill strength across the three 0-10 rated skill
-# dimensions (coding, communication, soft skills).
-df["skill_avg"] = df[["Coding_Skills", "Communication_Skills", "Soft_Skills_Rating"]].mean(axis=1)
+# dimensions (coding, communication, soft skills). Shared with api/main.py
+# via features.py so training and serving can't compute this differently.
+df["skill_avg"] = compute_skill_avg(df)
 
 # Missing-value strategy (documented in README): numeric -> median impute,
 # categorical -> most-frequent impute. This real dataset has zero missing

@@ -158,7 +158,10 @@ across library (or Python) versions.
 
 ```bash
 python3 -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
+# (requirements-dev.txt = requirements.txt + pytest/httpx for testing.
+#  Deploy configs install plain requirements.txt only, so the deployed
+#  container doesn't carry test tooling.)
 
 # 1. Prepare the real dataset (data/raw/train.csv + test.csv already included in this repo)
 python data/prepare_real_data.py

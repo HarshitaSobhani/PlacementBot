@@ -1,0 +1,8 @@
+# Test-only tooling, kept out of requirements.txt so the deployed
+# container (deploy/Dockerfile, deploy/render.yaml) doesn't carry it.
+-r requirements.txt
+certifi==2026.6.17
+httpx==0.28.1
+iniconfig==2.3.0
+pluggy==1.6.0
+pytest==9.1.1
