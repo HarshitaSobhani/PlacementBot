@@ -1,58 +1,28 @@
-document.getElementById("form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const form = e.target;
-  const numericFields = new Set([
-    "Age", "CGPA", "Internships", "Projects", "Coding_Skills",
-    "Communication_Skills", "Aptitude_Test_Score", "Soft_Skills_Rating",
-    "Certifications", "Backlogs",
-  ]);
+const NUMERIC_FIELDS = new Set([
+  "Age", "CGPA", "Internships", "Projects", "Coding_Skills",
+  "Communication_Skills", "Aptitude_Test_Score", "Soft_Skills_Rating",
+  "Certifications", "Backlogs",
+]);
 
-  const resultBox = document.getElementById("result");
-
-  let payload;
-  try {
-    payload = {};
-    new FormData(form).forEach((value, key) => {
-      if (!numericFields.has(key)) {
-        payload[key] = value;
-        return;
-      }
-      const num = parseFloat(value);
-      if (Number.isNaN(num)) {
-        throw new Error(`Please enter a number for "${key.replaceAll("_", " ")}".`);
-      }
-      payload[key] = num;
-    });
-  } catch (err) {
-    resultBox.style.display = "block";
-    resultBox.className = "not-placed";
-    resultBox.textContent = `Error: ${err.message}`;
-    return;
-  }
-
-  resultBox.style.display = "block";
-  resultBox.className = "";
-  resultBox.textContent = "Predicting...";
-
-  try {
-    const res = await fetch(`/predict`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      throw new Error(await readableError(res));
+// Pure -- no DOM access -- so it's unit-testable from Node (see script.test.js).
+function buildPayload(entries, numericFields) {
+  const payload = {};
+  for (const [key, value] of entries) {
+    if (!numericFields.has(key)) {
+      payload[key] = value;
+      continue;
     }
-    const data = await res.json();
-    render(data);
-  } catch (err) {
-    resultBox.className = "not-placed";
-    resultBox.textContent = `Error: ${err.message}`;
+    const num = parseFloat(value);
+    if (Number.isNaN(num)) {
+      throw new Error(`Please enter a number for "${key.replaceAll("_", " ")}".`);
+    }
+    payload[key] = num;
   }
-});
+  return payload;
+}
 
-async function readableError(res) {
-  const raw = await res.text();
+// Pure -- no DOM access -- so it's unit-testable from Node (see script.test.js).
+function parseErrorDetail(raw) {
   try {
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed.detail)) {
@@ -63,6 +33,10 @@ async function readableError(res) {
   } catch {
     return raw;
   }
+}
+
+async function readableError(res) {
+  return parseErrorDetail(await res.text());
 }
 
 function render(data) {
@@ -92,4 +66,47 @@ function render(data) {
   }
 
   resultBox.append(heading, label, list);
+}
+
+if (typeof document !== "undefined") {
+  document.getElementById("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const resultBox = document.getElementById("result");
+
+    let payload;
+    try {
+      payload = buildPayload(new FormData(form).entries(), NUMERIC_FIELDS);
+    } catch (err) {
+      resultBox.style.display = "block";
+      resultBox.className = "not-placed";
+      resultBox.textContent = `Error: ${err.message}`;
+      return;
+    }
+
+    resultBox.style.display = "block";
+    resultBox.className = "";
+    resultBox.textContent = "Predicting...";
+
+    try {
+      const res = await fetch(`/predict`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        throw new Error(await readableError(res));
+      }
+      const data = await res.json();
+      render(data);
+    } catch (err) {
+      resultBox.className = "not-placed";
+      resultBox.textContent = `Error: ${err.message}`;
+    }
+  });
+}
+
+// Node-only export for tests (browsers never define `module`).
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { buildPayload, parseErrorDetail, NUMERIC_FIELDS };
 }

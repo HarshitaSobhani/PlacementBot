@@ -9,7 +9,10 @@ def test_split_transformed_name_numeric():
 
 
 def test_split_transformed_name_categorical():
-    assert split_transformed_name("cat__Branch_CSE", NUMERIC, CATEGORICAL) == ("Branch", "CSE")
+    assert split_transformed_name("cat__Branch_CSE", NUMERIC, CATEGORICAL) == (
+        "Branch",
+        "CSE",
+    )
 
 
 def test_describe_feature_reads_raw_value_not_encoded_one():

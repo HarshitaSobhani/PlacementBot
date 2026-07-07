@@ -200,6 +200,32 @@ curl -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -
 }'
 ```
 
+## CI
+
+`.github/workflows/ci.yml` runs on every push/PR, as five independent jobs:
+
+- **test** — `pytest` (`tests/test_api.py`, `tests/test_explain_utils.py`).
+- **lint** — `ruff check` (lint), `ruff format --check` (style), `mypy` (type
+  checking) on `api/`, `model/`, `features.py`.
+- **security** — `pip-audit` against both `requirements.txt` and
+  `requirements-dev.txt`, checking pinned versions for known CVEs.
+- **frontend-test** — Node's built-in test runner (`node --test`) against
+  `frontend/script.test.js`. No test framework dependency: `script.js`'s
+  DOM-free logic (`buildPayload`, `parseErrorDetail`) is exported via a
+  `typeof module !== "undefined"` guard that's a no-op in the browser.
+- **training-pipeline** — re-runs `data/prepare_real_data.py` → `eda.py` →
+  `train.py` → `explain.py` from `data/raw/` (not the committed
+  `model/*.pkl`), then `scripts/check_training_floor.py` fails the build if
+  the selected model's F1 drops below 0.65. This is the one that actually
+  catches a training regression (a bad merge that silently drops a feature
+  column, corrupts the split, etc.) — the other jobs test the *serving* path
+  against whatever model happens to be committed, not that training still
+  reproduces a working one.
+
+Not covered, deliberately: building/running `deploy/Dockerfile` in CI (the
+Deployment section below is already flagged as untested against a live
+account, and a docker-build job doesn't change that).
+
 ## Deployment
 
 - **Render**: copy `deploy/render.yaml` to the repo root before connecting the repo
@@ -216,8 +242,12 @@ curl -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -
 /data      real dataset (raw/ + merge script) and a synthetic-data fallback generator
 /eda       EDA script + figures/
 /model     training, model comparison, SHAP explainability, saved artifacts
-/results   model_comparison.md, shap/ plots
+/results   model_comparison.md/.json, shap/ plots
 /api       FastAPI app, Pydantic schema, SHAP-to-plain-language layer
-/frontend  index.html + script.js (also served by the API at "/")
+/frontend  index.html + script.js (also served by the API at "/") + script.test.js
 /deploy    render.yaml, Dockerfile
+/tests     pytest suite (API contract, SHAP feature-name parsing)
+/scripts   CI helper (training F1 regression floor check)
+features.py            shared derived-feature logic (train.py + api/main.py)
+requirements-dev.txt   requirements.txt + pytest/ruff/mypy/pip-audit
 ```

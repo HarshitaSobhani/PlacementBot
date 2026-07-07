@@ -6,6 +6,7 @@ with academic percentages and work experience so the model has real signal.
 
 Run: python data/generate_synthetic_data.py
 """
+
 import numpy as np
 import pandas as pd
 
@@ -41,7 +42,12 @@ status = np.where(rng.uniform(size=N) < prob_placed, "Placed", "Not Placed")
 
 salary = np.where(
     status == "Placed",
-    np.round(np.clip(rng.normal(280000, 60000, N) + (academic_avg - 65) * 2000, 180000, 940000), -3),
+    np.round(
+        np.clip(
+            rng.normal(280000, 60000, N) + (academic_avg - 65) * 2000, 180000, 940000
+        ),
+        -3,
+    ),
     np.nan,
 )
 

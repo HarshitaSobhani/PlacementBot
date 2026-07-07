@@ -23,7 +23,9 @@ FRIENDLY_NAMES = {
 }
 
 
-def split_transformed_name(name: str, numeric_cols: list[str], categorical_cols: list[str]) -> tuple[str, str | None]:
+def split_transformed_name(
+    name: str, numeric_cols: list[str], categorical_cols: list[str]
+) -> tuple[str, str | None]:
     """'num__CGPA' -> ('CGPA', None); 'cat__Branch_CSE' -> ('Branch', 'CSE')."""
     body = name.split("__", 1)[1]
     if body in numeric_cols:
@@ -34,7 +36,13 @@ def split_transformed_name(name: str, numeric_cols: list[str], categorical_cols:
     return body, None
 
 
-def describe_feature(name: str, direction: str, raw_row: dict, numeric_cols: list[str], categorical_cols: list[str]) -> str:
+def describe_feature(
+    name: str,
+    direction: str,
+    raw_row: dict,
+    numeric_cols: list[str],
+    categorical_cols: list[str],
+) -> str:
     col, _category = split_transformed_name(name, numeric_cols, categorical_cols)
     friendly = FRIENDLY_NAMES.get(col, col)
     verb = "increased" if direction == "increased" else "decreased"

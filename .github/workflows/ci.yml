@@ -14,3 +14,52 @@ jobs:
           python-version: "3.13"
       - run: pip install -r requirements-dev.txt
       - run: python -m pytest -v
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy api/ model/ features.py --ignore-missing-imports
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements-dev.txt
+      - run: pip-audit -r requirements.txt --progress-spinner off
+      - run: pip-audit -r requirements-dev.txt --progress-spinner off
+
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --test frontend/script.test.js
+
+  training-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt
+      # Re-runs the full documented pipeline from data/raw/ (not the
+      # committed model/*.pkl artifacts) so CI catches a training
+      # regression, not just an API-serving bug against a stale model.
+      - run: python data/prepare_real_data.py
+      - run: python eda/eda.py
+      - run: python model/train.py
+      - run: python model/explain.py
+      - run: python scripts/check_training_floor.py

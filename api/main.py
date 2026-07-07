@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Literal
 
 import joblib
 import numpy as np
@@ -15,7 +16,10 @@ from features import compute_skill_avg
 
 ROOT = Path(__file__).resolve().parent.parent
 
-app = FastAPI(title="PlacementLens API", description="Predicts student placement likelihood with SHAP-backed explanations.")
+app = FastAPI(
+    title="PlacementLens API",
+    description="Predicts student placement likelihood with SHAP-backed explanations.",
+)
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
 )
@@ -54,7 +58,7 @@ def predict(payload: PlacementInput):
     Xt = Xt.toarray() if hasattr(Xt, "toarray") else Xt
 
     proba = float(model.predict_proba(Xt)[0, 1])
-    label = "Placed" if proba >= 0.5 else "Not Placed"
+    label: Literal["Placed", "Not Placed"] = "Placed" if proba >= 0.5 else "Not Placed"
 
     shap_values = _explainer.shap_values(Xt)
     if isinstance(shap_values, list):
@@ -62,9 +66,14 @@ def predict(payload: PlacementInput):
     elif shap_values.ndim == 3:
         shap_values = shap_values[..., 1]
     contributions = shap_values[0]
-    expected_value = _explainer.expected_value
-    if isinstance(expected_value, (list, np.ndarray)):
-        expected_value = expected_value[1] if np.ndim(expected_value) else float(expected_value)
+    expected_value_raw = _explainer.expected_value
+    if isinstance(expected_value_raw, (list, np.ndarray)):
+        ev_array = np.atleast_1d(np.asarray(expected_value_raw, dtype=float))
+        expected_value = (
+            float(ev_array[1]) if ev_array.shape[0] > 1 else float(ev_array[0])
+        )
+    else:
+        expected_value = float(expected_value_raw)
 
     # Rank all features by |contribution|, but keep only the first one seen
     # per clean column name -- a multi-category column like Branch or Degree
@@ -74,13 +83,17 @@ def predict(payload: PlacementInput):
     top_features = []
     seen_columns = set()
     for i in ranked:
-        clean_name, _category = split_transformed_name(FEATURE_NAMES[i], NUMERIC, CATEGORICAL)
+        clean_name, _category = split_transformed_name(
+            FEATURE_NAMES[i], NUMERIC, CATEGORICAL
+        )
         if clean_name in seen_columns:
             continue
         seen_columns.add(clean_name)
 
         contrib = float(contributions[i])
-        direction = "increased" if contrib > 0 else "decreased"
+        direction: Literal["increased", "decreased"] = (
+            "increased" if contrib > 0 else "decreased"
+        )
         base_prob = 1 / (1 + np.exp(-expected_value))
         bumped_prob = 1 / (1 + np.exp(-(expected_value + contrib)))
         impact_pct = round((bumped_prob - base_prob) * 100, 2)
@@ -89,7 +102,9 @@ def predict(payload: PlacementInput):
                 feature=clean_name,
                 direction=direction,
                 approx_probability_impact_pct=impact_pct,
-                explanation=describe_feature(FEATURE_NAMES[i], direction, raw_row, NUMERIC, CATEGORICAL),
+                explanation=describe_feature(
+                    FEATURE_NAMES[i], direction, raw_row, NUMERIC, CATEGORICAL
+                ),
             )
         )
         if len(top_features) == 3:

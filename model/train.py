@@ -6,6 +6,7 @@ preprocessor, to model/. Also writes results/model_comparison.md.
 
 Run: python model/train.py
 """
+
 import json
 import os
 import sys
@@ -31,9 +32,17 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from xgboost import XGBClassifier
 
 NUMERIC = [
-    "Age", "CGPA", "Internships", "Projects", "Coding_Skills",
-    "Communication_Skills", "Aptitude_Test_Score", "Soft_Skills_Rating",
-    "Certifications", "Backlogs", "skill_avg",
+    "Age",
+    "CGPA",
+    "Internships",
+    "Projects",
+    "Coding_Skills",
+    "Communication_Skills",
+    "Aptitude_Test_Score",
+    "Soft_Skills_Rating",
+    "Certifications",
+    "Backlogs",
+    "skill_avg",
 ]
 CATEGORICAL = ["Gender", "Degree", "Branch"]
 
@@ -63,16 +72,41 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 preprocessor = ColumnTransformer(
     transformers=[
-        ("num", Pipeline([("impute", SimpleImputer(strategy="median")), ("scale", StandardScaler())]), NUMERIC),
-        ("cat", Pipeline([("impute", SimpleImputer(strategy="most_frequent")), ("ohe", OneHotEncoder(handle_unknown="ignore", drop="if_binary"))]), CATEGORICAL),
+        (
+            "num",
+            Pipeline(
+                [
+                    ("impute", SimpleImputer(strategy="median")),
+                    ("scale", StandardScaler()),
+                ]
+            ),
+            NUMERIC,
+        ),
+        (
+            "cat",
+            Pipeline(
+                [
+                    ("impute", SimpleImputer(strategy="most_frequent")),
+                    ("ohe", OneHotEncoder(handle_unknown="ignore", drop="if_binary")),
+                ]
+            ),
+            CATEGORICAL,
+        ),
     ]
 )
 
 models = {
     "Logistic Regression": LogisticRegression(max_iter=1000, random_state=42),
-    "Random Forest": RandomForestClassifier(n_estimators=300, random_state=42, n_jobs=-1),
+    "Random Forest": RandomForestClassifier(
+        n_estimators=300, random_state=42, n_jobs=-1
+    ),
     "XGBoost": XGBClassifier(
-        n_estimators=300, max_depth=4, learning_rate=0.05, eval_metric="logloss", random_state=42, n_jobs=-1
+        n_estimators=300,
+        max_depth=4,
+        learning_rate=0.05,
+        eval_metric="logloss",
+        random_state=42,
+        n_jobs=-1,
     ),
 }
 
@@ -98,7 +132,11 @@ for name, clf in models.items():
         }
     )
 
-results_df = pd.DataFrame(rows).sort_values("F1", ascending=False, kind="stable").reset_index(drop=True)
+results_df = (
+    pd.DataFrame(rows)
+    .sort_values("F1", ascending=False, kind="stable")
+    .reset_index(drop=True)
+)
 best_name = results_df.iloc[0]["Model"]
 best_model = fitted[best_name]
 
@@ -108,6 +146,12 @@ with open(ROOT / "results" / "model_comparison.md", "w") as f:
     f.write("# Model Comparison\n\n")
     f.write(results_df.round(4).to_markdown(index=False))
     f.write(f"\n\n**Selected model (highest F1): {best_name}**\n")
+
+# Machine-readable copy of the same table, for CI's training-regression check
+# (parsing the markdown table there would be fragile).
+results_df.to_json(
+    ROOT / "results" / "model_comparison.json", orient="records", indent=2
+)
 
 joblib.dump(best_model, ROOT / "model" / "best_model.pkl")
 joblib.dump(preprocessor, ROOT / "model" / "preprocessor.pkl")

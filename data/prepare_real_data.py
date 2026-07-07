@@ -7,6 +7,7 @@ identical schema, so they're safe to concatenate and re-split ourselves.
 
 Run: python data/prepare_real_data.py
 """
+
 from pathlib import Path
 
 import pandas as pd
